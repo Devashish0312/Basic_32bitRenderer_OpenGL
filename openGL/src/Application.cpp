@@ -1,6 +1,9 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include <fstream>
+#include <string>
+#include <sstream>
 using namespace std;
 
 //in modernGL , opengl rendering pipeline consists of two main components: Vertex BUffers and Shaders.
@@ -11,6 +14,27 @@ using namespace std;
 														the area in between of the vertices and the color is filled by fragment shader so it is called much more times.
 */
 //check all the functions used in this functions in docs.gl website, the usage can be learned eventually by practice.
+
+
+static string parseShader(string filepath) {
+	
+	ifstream stream (filepath);
+	string line;
+	
+	try {
+		stream.open(filepath);
+		stringstream s;
+		s << stream.rdbuf();
+		stream.close();
+		line=s.str();
+	}
+	catch (ifstream::failure e) {
+		cout << "ERROR" << endl;
+	}
+	return line;
+}
+
+
 
 static unsigned int CompileShader(unsigned int type, const std::string& source) {
 	unsigned int id = glCreateShader(type);			//type contains which shader type and source will be the source code
@@ -94,35 +118,13 @@ int main(void)
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
 
-	
+
+
 	//******SHADER********:
-
-	//both shaders will be written as a c++ program and passed to createshader fucntion as strings
-	string vertexShader =
-		"#version 330 core\n"
-		"\n"
-		"layout(location=0) in vec4 position;"			/*the location(starting index of the postion array) is to be given as vec4
-														although it is supposed to be vec2 as vertex coord are 2d but that's how it works*/
-		"\n"
-		"void main()\n"
-		"{\n"
-		" glpositon=postion;\n"
-		"}\n";
-
-	string fragmentShader =
-		"#version 330 core\n"
-		"\n"
-		"layout(location=0) out vec4 color;"											  
-		"\n"
-		"void main()\n"
-		"{\n"
-		" color = vec4(1.0,0.0,0.0,0.0);\n"			//RGBA
-		"}\n";
-
-	unsigned int shader = CreateShader(vertexShader,fragmentShader);
+	string ver =  parseShader("Shaders/Vertex.shader");
+	string frag = parseShader("Shaders/fragment.shader");
+	unsigned int shader = CreateShader(ver,frag);
 	glUseProgram(shader);
-
-
 
 
 
@@ -139,7 +141,7 @@ int main(void)
 		/* Poll for and process events */
 		glfwPollEvents();
 	}
-
+	glDeleteProgram(shader);
 	glfwTerminate();
 	return 0;
 }
