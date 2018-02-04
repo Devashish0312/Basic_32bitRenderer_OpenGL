@@ -102,6 +102,7 @@ int main(void)
 	/* Make the window's context current */
 	glfwMakeContextCurrent(window);
 
+	glfwSwapInterval(1);	//setting the frame acc to the system
 
 	if (glewInit() != GLEW_OK)
 		cout << "Error!" << endl;
@@ -149,14 +150,26 @@ int main(void)
 	unsigned int shader = CreateShader(ver,frag);
 	glUseProgram(shader);
 
+	int location = glGetUniformLocation(shader, "u_color");
+	
 
 
+	float r = 0.0f;
+	float inc = 0.05f;
 	while (!glfwWindowShouldClose(window))
 	{
 		/* Render here */
 		glClear(GL_COLOR_BUFFER_BIT);
-
+		glUniform4f(location, r, 1.0f, 1.0f, 0.0f);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+
+		if (r > 1.0f)
+			inc = -0.05f;
+		else if(r < 0.0f)
+			inc = 0.05f;
+
+		r += inc;
+
 
 		/* Swap front and back buffers */
 		glfwSwapBuffers(window);
