@@ -107,16 +107,39 @@ int main(void)
 		cout << "Error!" << endl;
 	
 
+
+
 	//*****VERTEX BUFFER*******:
-	float positions[6] = {-0.5f,-0.5f,0.5f,-0.5f,0.5f,0.5f}; //position of vertices
+	float positions[] = {
+		-0.5f,-0.5f,
+		0.5f,-0.5f,
+		0.5f,0.5f,
+		-0.5f,0.5f
+	}; //position of vertices
+
+	unsigned int indices[] = {	//So, Triangle is the basic element that can be used in a GPU, so every shape have to be made with triangles.
+		0, 1 ,2 ,				//But doing that will result in creating so many vertices and mem waste.
+		2, 3, 0					// and bcoz of that indices are used which are assigned to each vertex so that they can be used again and again.
+	};
 
 	unsigned int buffer;//GenBuffers function gets an id and an unsigned int as a parameters
 	glGenBuffers(1, &buffer);//declaring that above created buffer will be used in GPU for openGL
 	glBindBuffer(GL_ARRAY_BUFFER, buffer);//defining the buffer as array one... it is called binding
-	glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), positions, GL_STATIC_DRAW); //info about the data inside the buffer 
+	glBufferData(GL_ARRAY_BUFFER, 6 * 2 *sizeof(float), positions, GL_STATIC_DRAW); //info about the data inside the buffer 
 
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
+
+
+	//Now same thing for Index buffers
+	unsigned int index_buffer;
+	glGenBuffers(1, &index_buffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW); 
+
+
+
+
 
 
 
@@ -133,7 +156,7 @@ int main(void)
 		/* Render here */
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
 		/* Swap front and back buffers */
 		glfwSwapBuffers(window);
