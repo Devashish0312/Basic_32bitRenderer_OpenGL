@@ -4,6 +4,8 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include "IndexBuffer.h";
+#include "VertexBuffer.h";
 using namespace std;
 
 //in modernGL , opengl rendering pipeline consists of two main components: Vertex BUffers and Shaders.
@@ -110,93 +112,85 @@ int main(void)
 		cout << "Error!" << endl;
 	
 
-
-
-	//*****VERTEX BUFFER*******:
-	float positions[] = {
-		-0.5f,-0.5f,
-		0.5f,-0.5f,
-		0.5f,0.5f,
-		-0.5f,0.5f
-	}; //position of vertices
-
-	unsigned int indices[] = {	//So, Triangle is the basic element that can be used in a GPU, so every shape have to be made with triangles.
-		0, 1 ,2 ,				//But doing that will result in creating so many vertices and mem waste.
-		2, 3, 0					// and bcoz of that indices are used which are assigned to each vertex so that they can be used again and again.
-	};
-
-	//Creating a VAO and binding it
-	unsigned int vao;
-	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
-
-	unsigned int buffer;//GenBuffers function gets an id and an unsigned int as a parameters
-	glGenBuffers(1, &buffer);//declaring that above created buffer will be used in GPU for openGL
-	glBindBuffer(GL_ARRAY_BUFFER, buffer);//defining the buffer as array one... it is called binding
-	glBufferData(GL_ARRAY_BUFFER, 4 * 2 *sizeof(float), positions, GL_STATIC_DRAW); //info about the data inside the buffer 
-
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
-
-
-	//Now same thing for Index buffers
-	unsigned int index_buffer;
-	glGenBuffers(1, &index_buffer);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW); 
-
-
-
-
-
-	//******SHADER********:
-	string ver =  parseShader("Shaders/Vertex.shader");
-	string frag = parseShader("Shaders/fragment.shader");
-	unsigned int shader = CreateShader(ver,frag);
-	glUseProgram(shader);
-
-	int location = glGetUniformLocation(shader, "u_color");
-	
-	glUseProgram(0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-
-
-	float r = 0.0f;
-	float inc = 0.05f;
-	while (!glfwWindowShouldClose(window))
 	{
-		/* Render here */
-		glClear(GL_COLOR_BUFFER_BIT);
 
-		glUseProgram(shader);	//bind shader
-		glUniform4f(location, r, 1.0f, 1.0f, 0.0f);		//set up the uniforms
+		//*****VERTEX BUFFER*******:
+		float positions[] = {
+			-0.5f,-0.5f,
+			0.5f,-0.5f,
+			0.5f,0.5f,
+			-0.5f,0.5f
+		}; //position of vertices
 
-		glBindBuffer(GL_ARRAY_BUFFER, buffer);			//bind vertex buffer	
-		glEnableVertexAttribArray(0);											//Layout of the 
-		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);	//vertex buffer
+		unsigned int indices[] = {	//So, Triangle is the basic element that can be used in a GPU, so every shape have to be made with triangles.
+			0, 1 ,2 ,				//But doing that will result in creating so many vertices and mem waste.
+			2, 3, 0					// and bcoz of that indices are used which are assigned to each vertex so that they can be used again and again.
+		};
 
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer);	//bind index buffer
+		//Creating a VAO and binding it
+		unsigned int vao;
+		glGenVertexArrays(1, &vao);
+		glBindVertexArray(vao);
 
-		
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+		VertexBuffer vb(positions, 4 * 2 * sizeof(float));
 
-		if (r > 1.0f)
-			inc = -0.05f;
-		else if(r < 0.0f)
-			inc = 0.05f;
-
-		r += inc;
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
 
 
-		/* Swap front and back buffers */
-		glfwSwapBuffers(window);
+		//Now same thing for Index buffers
+		IndexBuffer ib(indices, 6);
 
-		/* Poll for and process events */
-		glfwPollEvents();
+
+
+
+
+		//******SHADER********:
+		string ver = parseShader("Shaders/Vertex.shader");
+		string frag = parseShader("Shaders/fragment.shader");
+		unsigned int shader = CreateShader(ver, frag);
+		glUseProgram(shader);
+
+		int location = glGetUniformLocation(shader, "u_color");
+
+		glUseProgram(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+
+
+		float r = 0.0f;
+		float inc = 0.05f;
+		while (!glfwWindowShouldClose(window))
+		{
+			/* Render here */
+			glClear(GL_COLOR_BUFFER_BIT);
+
+			glUseProgram(shader);	//bind shader
+			glUniform4f(location, r, 1.0f, 1.0f, 0.0f);		//set up the uniforms
+
+			glBindVertexArray(vao);
+			ib.Bind();	//bind index buffer
+
+
+			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+
+			if (r > 1.0f)
+				inc = -0.05f;
+			else if (r < 0.0f)
+				inc = 0.05f;
+
+			r += inc;
+
+
+			/* Swap front and back buffers */
+			glfwSwapBuffers(window);
+
+			/* Poll for and process events */
+			glfwPollEvents();
+		}
+		glDeleteProgram(shader);
 	}
-	glDeleteProgram(shader);
 	glfwTerminate();
 	return 0;
 }
