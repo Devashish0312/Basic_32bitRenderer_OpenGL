@@ -6,6 +6,8 @@
 #include <sstream>
 #include "IndexBuffer.h";
 #include "VertexBuffer.h";
+#include "VertexArray.h";
+#include "VertexBufferLayout.h";
 using namespace std;
 
 //in modernGL , opengl rendering pipeline consists of two main components: Vertex BUffers and Shaders.
@@ -127,15 +129,13 @@ int main(void)
 			2, 3, 0					// and bcoz of that indices are used which are assigned to each vertex so that they can be used again and again.
 		};
 
-		//Creating a VAO and binding it
-		unsigned int vao;
-		glGenVertexArrays(1, &vao);
-		glBindVertexArray(vao);
+
+		VertexArray va;
 
 		VertexBuffer vb(positions, 4 * 2 * sizeof(float));
-
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
+		VertexBufferLayout layout;
+		layout.Push <float>(2);
+		va.AddBuffer(vb,layout);
 
 
 		//Now same thing for Index buffers
@@ -168,8 +168,6 @@ int main(void)
 
 			glUseProgram(shader);	//bind shader
 			glUniform4f(location, r, 1.0f, 1.0f, 0.0f);		//set up the uniforms
-
-			glBindVertexArray(vao);
 			ib.Bind();	//bind index buffer
 
 
